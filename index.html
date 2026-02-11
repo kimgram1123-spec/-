@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>쿠키런 미션 뽑기</title>
+    <style>
+        body { background-color: #1a1a1a; color: white; text-align: center; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        #card-container { width: 400px; height: 550px; border: 5px solid #444; border-radius: 20px; background: #2a2a2a; padding: 20px; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; transition: transform 0.3s; }
+        #card-image { width: 100%; height: 350px; border-radius: 10px; object-fit: cover; background-color: #000; }
+        #grade { font-size: 24px; font-weight: bold; margin-top: 15px; }
+        #name { font-size: 20px; color: #ffd700; margin: 10px 0; }
+        #desc { font-size: 16px; color: #ccc; line-height: 1.4; height: 60px; }
+        button { margin-top: 30px; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: #ff4757; color: white; border: none; border-radius: 50px; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4); transition: 0.2s; }
+        button:hover { background: #ff6b81; transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+        .legend { border-color: #ffcc00 !important; color: #ffcc00; }
+        .epic { border-color: #a020f0 !important; color: #a020f0; }
+        .rare { border-color: #1e90ff !important; color: #1e90ff; }
+        .pain { border-color: #ff4500 !important; color: #ff4500; }
+        .death { border-color: #000000 !important; color: #ff0000; background: #000 !important; }
+    </style>
+</head>
+<body>
+    <div id="card-container">
+        <img id="card-image" src="" alt="카드를 뽑아주세요">
+        <div id="grade">등급</div>
+        <div id="name">미션 이름</div>
+        <div id="desc">효과 설명이 여기에 표시됩니다.</div>
+    </div>
+    <button onclick="drawCard()">미션 뽑기 (중복 허용)</button>
+
+    <script>
+        // 모든 weight를 1로 통일하여 골고루 나오게 설정함
+        const cards = [
+            { id: 1, grade: "레전드", name: "매화의 축복", desc: "선달로 매화단청 쿠키를 확정으로 사용합니다.", weight: 1 },
+            { id: 2, grade: "레전드", name: "점수가 더블!", desc: "이번 판 총 점수가 두 배 증폭합니다.", weight: 1 },
+            { id: 3, grade: "에픽", name: "약한 친구들도 모이면 강해지지!", desc: "C~A 등급 쿠키/펫 당첨 시 리롤 +2.", weight: 1 },
+            { id: 4, grade: "에픽", name: "어떤 펫이 나올까?", desc: "펫 선택 가능 및 리롤 +3.", weight: 1 },
+            { id: 5, grade: "에픽", name: "이제 우리에게 맡겨!", desc: "불꽃정령, 망개떡, 충무김밥 중 이어달리기 선택.", weight: 1 },
+            { id: 6, grade: "에픽", name: "물질 만능 주의", desc: "획득 코인의 4000배를 점수로 획득.", weight: 1 },
+            { id: 7, grade: "레어", name: "가볍게 툭!", desc: "리롤 7개를 추가로 얻습니다.", weight: 1 },
+            { id: 8, grade: "레어", name: "경험이 많은 자", desc: "획득 경험치의 5000배를 점수로 획득.", weight: 1 },
+            { id: 9, grade: "레어", name: "향긋한 풀내음", desc: "초록색 계열 쿠키 선택 시 점수 1.5배.", weight: 1 },
+            { id: 10, grade: "레어", name: "쫄?", desc: "통조림 보물 3개 착용 시 다음 판 점수 1.3배.", weight: 1 },
+            { id: 11, grade: "레어", name: "인생은 도박", desc: "레전더리 미당첨 시 선달 슈크림 고정.", weight: 1 },
+            { id: 12, grade: "레어", name: "구름을 타는 기분", desc: "보너스타임 진입 횟수당 2천만 점 추가.", weight: 1 },
+            { id: 13, grade: "고통", name: "웃음벨맛 쿠키", desc: "이어달리기가 예언자맛 쿠키로 고정됩니다.", weight: 1 },
+            { id: 14, grade: "고통", name: "백성을 위한 의적", desc: "크라운, 꼬치, 돌도그 보물 사용 금지.", weight: 1 },
+            { id: 15, grade: "고통", name: "뱀파이어맛 야식", desc: "보물을 특정 주류/꼬치류로만 구성.", weight: 1 },
+            { id: 16, grade: "고통", name: "물약펫 표류기", desc: "물약펫 등장 시 강제 리롤.", weight: 1 },
+            { id: 17, grade: "고통", name: "레전드의 절망", desc: "레전더리 선택 시 리롤 10개 차감.", weight: 1 },
+            { id: 18, grade: "고통", name: "인생은 매콤하게!", desc: "이번 판에 무조건 4회 충돌해야 합니다.", weight: 1 },
+            { id: 19, grade: "고통", name: "뉴비는 빠져!", desc: "2024~2026년 쿠키/펫 등장 시 강제 리롤.", weight: 1 },
+            { id: 20, grade: "고통", name: "해적의 약탈", desc: "리롤 5개를 차감합니다.", weight: 1 },
+            { id: 21, grade: "죽음", name: "교통사고", desc: "이어달리기를 사용하지 못합니다.", weight: 1 },
+            { id: 22, grade: "죽음", name: "먼저 퇴근합니다!", desc: "모든 보유효과와 보물을 해제하고 달립니다.", weight: 1 }
+        ];
+
+        function drawCard() {
+            const totalWeight = cards.reduce((acc, card) => acc + card.weight, 0);
+            let random = Math.random() * totalWeight;
+            let selected;
+            for (let card of cards) {
+                if (random < card.weight) {
+                    selected = card;
+                    break;
+                }
+                random -= card.weight;
+            }
+            const container = document.getElementById('card-container');
+            // 사진 파일명 형식 .png.png 에 맞춤
+            document.getElementById('card-image').src = selected.id + ".png.png"; 
+            document.getElementById('grade').innerText = "[" + selected.grade + "]";
+            document.getElementById('name').innerText = selected.name;
+            document.getElementById('desc').innerText = selected.desc;
+
+            container.className = ""; 
+            if(selected.grade === "레전드") container.classList.add('legend');
+            else if(selected.grade === "에픽") container.classList.add('epic');
+            else if(selected.grade === "레어") container.classList.add('rare');
+            else if(selected.grade === "고통") container.classList.add('pain');
+            else if(selected.grade === "죽음") container.classList.add('death');
+        }
+    </script>
+</body>
+</html>
